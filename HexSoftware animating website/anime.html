@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Animated Website Header</title>
+
+<style>
+/* ---------- RESET ---------- */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Poppins",sans-serif;
+}
+
+/* ---------- BODY ---------- */
+body{
+  background:#0f0c29;
+  overflow:hidden;
+}
+
+/* ---------- HERO SECTION ---------- */
+.hero{
+  height:100vh;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  color:white;
+  padding:40px 70px;
+  position:relative;
+}
+
+/* ---------- NAVBAR ---------- */
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:bold;
+}
+
+.nav ul{
+  list-style:none;
+  display:flex;
+}
+
+.nav li{
+  margin-left:25px;
+  cursor:pointer;
+  position:relative;
+}
+
+.nav li::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-5px;
+  width:0%;
+  height:2px;
+  background:#ff9800;
+  transition:0.4s;
+}
+
+.nav li:hover::after{
+  width:100%;
+}
+
+/* ---------- CONTENT ---------- */
+.content{
+  margin-top:120px;
+  max-width:600px;
+}
+
+.content h1{
+  font-size:52px;
+  line-height:1.2;
+}
+
+.content p{
+  margin:20px 0;
+  font-size:17px;
+  opacity:0.9;
+}
+
+.content button{
+  background:#ff9800;
+  color:black;
+  border:none;
+  padding:12px 28px;
+  border-radius:30px;
+  font-size:15px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.content button:hover{
+  background:white;
+}
+
+/* ---------- ANIMATION BASE ---------- */
+.hidden{
+  opacity:0;
+  transform:translateY(40px);
+}
+
+.show{
+  animation:fadeUp 1s ease forwards;
+}
+
+/* ---------- BACKGROUND SHAPES ---------- */
+.circle{
+  position:absolute;
+  border-radius:50%;
+  opacity:0.15;
+  animation:float 8s infinite ease-in-out;
+}
+
+.circle.one{
+  width:200px;
+  height:200px;
+  background:#ff9800;
+  top:10%;
+  right:15%;
+}
+
+.circle.two{
+  width:300px;
+  height:300px;
+  background:#ffffff;
+  bottom:-80px;
+  left:10%;
+  animation-delay:2s;
+}
+
+/* ---------- KEYFRAMES ---------- */
+@keyframes fadeUp{
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes float{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-25px);}
+  100%{transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<section class="hero">
+
+  <!-- Floating Shapes -->
+  <div class="circle one"></div>
+  <div class="circle two"></div>
+
+  <!-- Navbar -->
+  <nav class="nav hidden">
+    <div class="logo">MyWebsite</div>
+    <ul>
+      <li>Home</li>
+      <li>About</li>
+      <li>Services</li>
+      <li>Contact</li>
+    </ul>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+    <h1 class="hidden">Build Stunning<br>Animated Websites</h1>
+    <p class="hidden">
+      Create modern and interactive user interfaces using
+      HTML, CSS animations, and JavaScript time delay effects.
+    </p>
+    <button class="hidden">Get Started</button>
+  </div>
+
+</section>
+
+<script>
+/* ---------- DELAYED ANIMATION ---------- */
+const elements = document.querySelectorAll(".hidden");
+
+elements.forEach((el,index)=>{
+  setTimeout(()=>{
+    el.classList.add("show");
+  }, index * 400);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crowdfunding Platform</title>
+
+<style>
+/* ---------- RESET ---------- */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ---------- BODY ---------- */
+body{
+  background: linear-gradient(135deg,#1d2671,#c33764);
+  min-height:100vh;
+  padding:30px;
+  color:#333;
+}
+
+/* ---------- HEADER ---------- */
+header{
+  background:white;
+  padding:20px 30px;
+  border-radius:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  animation: slideDown 1s ease;
+}
+
+header h1{
+  color:#c33764;
+}
+
+header button{
+  background:#c33764;
+  color:white;
+  border:none;
+  padding:10px 18px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:14px;
+  transition:0.3s;
+}
+
+header button:hover{
+  background:#1d2671;
+}
+
+/* ---------- COMMON ---------- */
+.container{
+  margin-top:25px;
+}
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.15);
+  animation: fadeUp 0.8s ease;
+}
+
+input,textarea{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+button{
+  border:none;
+  padding:8px 14px;
+  border-radius:15px;
+  cursor:pointer;
+}
+
+.hidden{
+  display:none;
+}
+
+/* ---------- PROJECT GRID ---------- */
+.projects{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+/* ---------- PROGRESS ---------- */
+.progress{
+  background:#eee;
+  height:10px;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:8px;
+}
+
+.progress-bar{
+  background:linear-gradient(to right,#1d2671,#c33764);
+  height:100%;
+}
+
+/* ---------- DETAILS ---------- */
+.details button{
+  background:#1d2671;
+  color:white;
+  margin-top:5px;
+}
+
+.pay-btn{
+  background:#28a745;
+  color:white;
+}
+
+.update-btn{
+  background:#ff9800;
+  color:white;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(30px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+@keyframes slideDown{
+  from{opacity:0; transform:translateY(-30px);}
+  to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🚀 Crowdfunding</h1>
+  <button onclick="toggleCreate()">+ New Project</button>
+</header>
+
+<div class="container">
+
+  <!-- CREATE PROJECT -->
+  <div id="createBox" class="card hidden">
+    <h2>Create Project</h2>
+    <input id="title" placeholder="Project Title">
+    <textarea id="description" placeholder="Project Description"></textarea>
+    <input id="goal" type="number" placeholder="Funding Goal (₹)">
+    <button class="pay-btn" onclick="createProject()">Create</button>
+  </div>
+
+  <!-- PROJECT LIST -->
+  <div class="projects" id="projectList"></div>
+
+  <!-- PROJECT DETAILS -->
+  <div id="details" class="card hidden details"></div>
+
+</div>
+
+<script>
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
+let selectedId = null;
+
+function toggleCreate(){
+  document.getElementById("createBox").classList.toggle("hidden");
+}
+
+function createProject(){
+  if(!title.value || !goal.value) return alert("Fill all fields");
+  projects.push({
+    id:Date.now(),
+    title:title.value,
+    description:description.value,
+    goal:+goal.value,
+    raised:0,
+    updates:[]
+  });
+  localStorage.setItem("projects",JSON.stringify(projects));
+  title.value=description.value=goal.value="";
+  displayProjects();
+}
+
+function displayProjects(){
+  projectList.innerHTML="";
+  projects.forEach(p=>{
+    let percent=Math.min((p.raised/p.goal)*100,100);
+    projectList.innerHTML+=`
+      <div class="card">
+        <h3>${p.title}</h3>
+        <p>${p.description}</p>
+        <strong>₹${p.raised} / ₹${p.goal}</strong>
+        <div class="progress">
+          <div class="progress-bar" style="width:${percent}%"></div>
+        </div>
+        <button onclick="viewDetails(${p.id})">View Details</button>
+      </div>
+    `;
+  });
+}
+
+function viewDetails(id){
+  selectedId=id;
+  let p=projects.find(x=>x.id===id);
+  let percent=Math.min((p.raised/p.goal)*100,100);
+
+  details.innerHTML=`
+    <h2>${p.title}</h2>
+    <p>${p.description}</p>
+    <strong>₹${p.raised} / ₹${p.goal}</strong>
+    <div class="progress">
+      <div class="progress-bar" style="width:${percent}%"></div>
+    </div>
+
+    <h3>💰 Contribute</h3>
+    <input id="amount" type="number" placeholder="Amount">
+    <button class="pay-btn" onclick="contribute()">Pay Now</button>
+
+    <h3>📢 Update</h3>
+    <textarea id="updateText"></textarea>
+    <button class="update-btn" onclick="addUpdate()">Add Update</button>
+
+    <h3>Updates</h3>
+    ${p.updates.map(u=>`<p>• ${u.text} <small>(${u.date})</small></p>`).join("")}
+  `;
+  details.classList.remove("hidden");
+}
+
+function contribute(){
+  let amt=+document.getElementById("amount").value;
+  if(amt<=0) return alert("Enter valid amount");
+  let p=projects.find(x=>x.id===selectedId);
+  alert("Processing Payment...");
+  setTimeout(()=>{
+    p.raised+=amt;
+    localStorage.setItem("projects",JSON.stringify(projects));
+    alert("Payment Successful ✅");
+    viewDetails(selectedId);
+    displayProjects();
+  },1000);
+}
+
+function addUpdate(){
+  let text=document.getElementById("updateText").value;
+  if(!text) return;
+  let p=projects.find(x=>x.id===selectedId);
+  p.updates.push({text,date:new Date().toLocaleString()});
+  localStorage.setItem("projects",JSON.stringify(projects));
+  viewDetails(selectedId);
+}
+
+displayProjects();
+</script>
+
+</body>
+</html>

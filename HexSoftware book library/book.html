@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Personal Book Library</title>
+
+<style>
+/* ---------- RESET ---------- */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Segoe UI",sans-serif;
+}
+
+/* ---------- BODY ---------- */
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:30px;
+}
+
+/* ---------- HEADER ---------- */
+header{
+  background:white;
+  padding:20px 30px;
+  border-radius:18px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.2);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  animation:slideDown 1s ease;
+}
+
+header h1{
+  color:#764ba2;
+}
+
+/* ---------- COMMON ---------- */
+.container{
+  margin-top:25px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+  animation:fadeUp 0.8s ease;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+button{
+  border:none;
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  background:#667eea;
+  color:white;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#764ba2;
+}
+
+/* ---------- BOOK GRID ---------- */
+.books{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+.book{
+  padding:15px;
+  border-radius:15px;
+  background:#f7f7ff;
+}
+
+.book strong{
+  font-size:16px;
+}
+
+.badge{
+  background:#764ba2;
+  color:white;
+  padding:3px 10px;
+  border-radius:15px;
+  font-size:12px;
+}
+
+/* ---------- HISTORY ---------- */
+.history{
+  background:#f3f0ff;
+  border-radius:12px;
+  padding:10px;
+  margin-top:8px;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(25px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-25px);}
+  to{opacity:1;transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>📚 Personal Book Library</h1>
+</header>
+
+<div class="container">
+
+  <!-- ADD BOOK -->
+  <div class="card">
+    <h2>Add Book</h2>
+    <input id="title" placeholder="Book Title">
+    <input id="author" placeholder="Author">
+    <select id="category">
+      <option>Technology</option>
+      <option>Education</option>
+      <option>Fiction</option>
+      <option>Biography</option>
+    </select>
+    <button onclick="addBook()">Add Book</button>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card">
+    <input id="search" placeholder="🔍 Search books..." onkeyup="searchBooks()">
+  </div>
+
+  <!-- BOOK LIST -->
+  <div class="books" id="bookList"></div>
+
+  <!-- BORROW HISTORY -->
+  <div class="card">
+    <h2>📖 Borrow History</h2>
+    <div id="history"></div>
+  </div>
+
+</div>
+
+<script>
+let books = JSON.parse(localStorage.getItem("books")) || [];
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+function addBook(){
+  if(!title.value || !author.value) return alert("Fill all fields");
+  books.push({
+    id:Date.now(),
+    title:title.value,
+    author:author.value,
+    category:category.value,
+    available:true
+  });
+  localStorage.setItem("books",JSON.stringify(books));
+  title.value=author.value="";
+  displayBooks();
+}
+
+function displayBooks(list=books){
+  bookList.innerHTML="";
+  list.forEach(b=>{
+    bookList.innerHTML+=`
+      <div class="book">
+        <strong>${b.title}</strong><br>
+        <small>${b.author}</small><br><br>
+        <span class="badge">${b.category}</span><br><br>
+        <button onclick="borrowBook(${b.id})" ${!b.available?"disabled":""}>
+          ${b.available?"Borrow":"Borrowed"}
+        </button>
+      </div>
+    `;
+  });
+}
+
+function borrowBook(id){
+  let b=books.find(x=>x.id===id);
+  b.available=false;
+  history.push({
+    title:b.title,
+    date:new Date().toLocaleDateString()
+  });
+  localStorage.setItem("books",JSON.stringify(books));
+  localStorage.setItem("history",JSON.stringify(history));
+  displayBooks();
+  displayHistory();
+}
+
+function searchBooks(){
+  let t=search.value.toLowerCase();
+  let filtered=books.filter(b=>
+    b.title.toLowerCase().includes(t) ||
+    b.author.toLowerCase().includes(t)
+  );
+  displayBooks(filtered);
+}
+
+function displayHistory(){
+  history.innerHTML="";
+  history.forEach(h=>{
+    history.innerHTML+=`
+      <div class="history">
+        📘 ${h.title} <small>(${h.date})</small>
+      </div>
+    `;
+  });
+}
+
+displayBooks();
+displayHistory();
+</script>
+
+</body>
+</html>
